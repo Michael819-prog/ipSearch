@@ -13,14 +13,17 @@ class IpController extends Controller
         $q = null;
         $orderBy = 'desc';
         $sortBy = 'IP';
-        $Gtype = null;
-        $grp = 1;
-        $mask = decbin(ip2long('255.255.255.0'));
+        $Gloc = null;
         if ($request->has('q')) $q = $request->query('q');
         if ($request->has('orderBy')) {
             $orderBy = $request->query('orderBy');
             if ($orderBy == 'on') $orderBy = 'asc';
             else $orderBy = 'desc';
+        }
+        if ($request->has('Gloc')) {
+            $Gloc = $request->query('Gloc');
+            if ($Gloc == 'on') $Gloc = 1;
+            else $Gloc = 0;
         }
 
         if ($q != null && ip2long($q)){
@@ -60,6 +63,26 @@ class IpController extends Controller
             $ip = IP::select("*")
                 ->orderBy($sortBy, $orderBy)
                 ->get();
+        } else if (!$Gloc) {
+            $ip = IP::select("*")
+                ->orderBy($sortBy, $orderBy)
+                ->get();
+            $masks = DB::table('ip')->pluck('IP');
+            $masks->toArray();
+            for($i = 0; $i < count($masks); $i++) {
+                $masks[$i] = (int)($masks[$i]/1000);
+            }
+            $masks = $masks->unique();
+            $Gloc = $masks;
+            $Gloc = $ip->reject(true);
+            foreach ($masks as $m) {
+                $ips = DB::table('ip')->select('IP', 'location', 'address')
+                    ->where('IP', 'LIKE', "%{$m}%")
+                    ->orderBy('IP', 'asc')
+                    ->get();
+                $Gloc->push($ips);
+            }
+            //dd($Gloc->first()->first()->{"IP"});
         }
         else {
             $ip = IP::select("*")
@@ -67,11 +90,7 @@ class IpController extends Controller
                 ->get();
         }
 
-        return view('searcher', compact('ip', 'q', 'orderBy'));
+        return view('searcher', compact('ip', 'q', 'orderBy', 'Gloc'));
     }
 
-    /*public function SortIP() {
-        $ip = IP::orderBy('ip','DESC')->get();
-        return view('searcher', compact('ip'));
-    }*/
 }

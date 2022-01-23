@@ -50,13 +50,13 @@
                                     <input class="form-check-input" type="checkbox" value="">
                                     <span class="form-check-label">Host IP addresses</span>
                                 </label>
-                                <label class="form-check">
+{{--                                <label class="form-check">
                                     <input id="AllList" class="form-check-input" type="checkbox" value="">
                                     <span class="form-check-label">Show all IP</span>
-                                </label>
+                                </label>--}}
                                 <label class="form-check">
-                                    <input id="grpType" name="Gtype" class="form-check-input" type="checkbox" value="">
-                                    <span class="form-check-label">Group by type</span>
+                                    <input id="grpLoc" name="Gloc" class="form-check-input" type="checkbox" >
+                                    <span class="form-check-label">Group by location</span>
                                 </label>
                                 <label class="form-check">
                                     <input class="form-check-input" type="checkbox" value="">
@@ -83,6 +83,11 @@
             </div>
         </div>
     @else
+        @if($q != null)
+            <div class="container mb-4">
+                <h1 class="fw-bold" style="color: green">Results for <span style="color: #0d6efd">{!! str_replace('.0', '.*', long2ip($q)) !!}</span> :</h1>
+            </div>
+        @endif
         <div id="unsortedList">
         @foreach($ip as $i)
             <button style="display: none" id="helper"></button>
@@ -99,27 +104,65 @@
             </div>
         @endforeach
         </div>
+
+        <div id="groupedList_loc">
+            @if($Gloc != null)
+                @foreach($Gloc as $gl)
+                    <button style="display: none" id="helper"></button>
+                    <div class="container">
+                        <div class="card shadow-lg rounded p-3 my-5 rounded-3 shadow-lg p-3 pb-0 rounded">
+                            <h1 style="color: green"><strong>Network {!! Str::limit(long2ip($gl->first()->{"IP"}), 9, ".***") !!}</strong></h1>
+                            <div class="container">
+                                <div class="card shadow-lg rounded mb-5">
+                                    @foreach($gl as $g)
+                                    <a class="nav-link active title fw-bold" style="font-size: x-large" id="click" href="javascript:show_hide({{($g->{"IP"})}});">{{long2ip($g->{"IP"})}}</a>
+                                    <div class="card shadow-lg rounded">
+                                        <div class="ShowHide{{($g->{"IP"})}}">
+                                            <p>{{($g->{"location"})}}</p>
+                                            <p>{{($g->{"address"})}}</p>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+        </div>
     @endif
 
     <script>
         $(document).ready(function() {
             $('[class*="ShowHide"]').hide();
             $('#helpbtn').hide();
-            //$('#unsortedList').hide();
+            $('#groupedList_loc').hide();
         });
 
         function show_hide($idd) {
             var namme = "div.ShowHide" + $idd;
             $(namme).slideToggle('slow');
-        };
+        }
+
+        function check_vis() {
+            return $('#groupedList_loc').is(":hidden");
+        }
 
         $('#AllList').change(function () {
-            $('#unsortedList').slideToggle('slow');
+            // if ($('#groupedList_loc').is(":hidden"))
+            //     $('#unsortedList').slideToggle('slow');
+            // else
+            //     $('#groupedList_loc').slideToggle('slow');
             //$("html, body").animate({ scrollTop: $(document).height() });
         });
 
         $('#SortList').change(function () {
             $('#helpbtn').click();
+        });
+
+        $('#grpLoc').change(function () {
+            $('#unsortedList').slideToggle('slow');
+            $('#groupedList_loc').slideToggle('slow');
         });
 
     </script>
