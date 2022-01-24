@@ -35,25 +35,9 @@
                         <div class="card-body">
                             <form action="{{route('index')}}">
                                 <label class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input id="rtr" name="router" class="form-check-input" type="checkbox">
                                     <span class="form-check-label">Router IP addresses</span>
                                 </label>
-                                <label class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="">
-                                    <span class="form-check-label">Switch IP addresses</span>
-                                </label>
-                                <label class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="">
-                                    <span class="form-check-label">WLAN IP addresses</span>
-                                </label>
-                                <label class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="">
-                                    <span class="form-check-label">Host IP addresses</span>
-                                </label>
-{{--                                <label class="form-check">
-                                    <input id="AllList" class="form-check-input" type="checkbox" value="">
-                                    <span class="form-check-label">Show all IP</span>
-                                </label>--}}
                                 <label class="form-check">
                                     <input id="grpLoc" name="Gloc" class="form-check-input" type="checkbox" >
                                     <span class="form-check-label">Group by location</span>
@@ -83,12 +67,12 @@
             </div>
         </div>
     @else
+        <div id="unsortedList">
         @if($q != null)
-            <div class="container mb-4">
+            <div class="container mb-4" id="searchRes">
                 <h1 class="fw-bold" style="color: green">Results for <span style="color: #0d6efd">{!! str_replace('.0', '.*', long2ip($q)) !!}</span> :</h1>
             </div>
         @endif
-        <div id="unsortedList">
         @foreach($ip as $i)
             <button style="display: none" id="helper"></button>
             <div class="container">
@@ -130,6 +114,31 @@
                 @endforeach
             @endif
         </div>
+
+        <div id="routerList">
+            @if($router != null)
+                <div class="container mb-4" id="routerRes">
+                    <h1 class="fw-bold" style="color: green">Router IP addresses:</h1>
+                </div>
+                @foreach($router as $rt)
+                    <button style="display: none" id="helper"></button>
+                    <div class="container">
+                        <div class="card shadow-lg rounded mb-5">
+                            @foreach($rt as $r)
+                                <a class="nav-link active title fw-bold" style="font-size: x-large" id="click" href="javascript:show_hide({{($r->{"IP"})}});">{{long2ip($r->{"IP"})}}</a>
+                                <div class="card shadow-lg rounded">
+                                    <div class="ShowHide{{($r->{"IP"})}}">
+                                        <p>{{($r->{"location"})}}</p>
+                                        <p>{{($r->{"address"})}}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+        </div>
+
     @endif
 
     <script>
@@ -137,6 +146,7 @@
             $('[class*="ShowHide"]').hide();
             $('#helpbtn').hide();
             $('#groupedList_loc').hide();
+            $('#routerList').hide();
         });
 
         function show_hide($idd) {
@@ -148,21 +158,38 @@
             return $('#groupedList_loc').is(":hidden");
         }
 
-        $('#AllList').change(function () {
-            // if ($('#groupedList_loc').is(":hidden"))
-            //     $('#unsortedList').slideToggle('slow');
-            // else
-            //     $('#groupedList_loc').slideToggle('slow');
-            //$("html, body").animate({ scrollTop: $(document).height() });
-        });
-
         $('#SortList').change(function () {
             $('#helpbtn').click();
         });
 
         $('#grpLoc').change(function () {
-            $('#unsortedList').slideToggle('slow');
-            $('#groupedList_loc').slideToggle('slow');
+
+            if ($('#grpLoc').is(':checked')) {
+                if (!$('#unsortedList').is(":hidden")){
+                    $('#unsortedList').stop().slideUp(500);
+                } else if (!$('#routerList').is(":hidden")) {
+                    $('#routerList').stop().slideUp(500);
+                }
+                $('#groupedList_loc').slideDown(500);
+            } else {
+                $('#groupedList_loc').stop().slideUp(500);
+                $('#unsortedList').slideDown(500);
+            }
+        });
+
+        $('#rtr').change(function () {
+
+            if ($('#rtr').is(':checked')) {
+                if (!$('#unsortedList').is(":hidden")){
+                    $('#unsortedList').stop().slideUp(500);
+                } else if (!$('#groupedList_loc').is(":hidden")) {
+                    $('#groupedList_loc').stop().slideUp(500);
+                }
+                $('#routerList').slideDown(500);
+            } else {
+                $('#routerList').stop().slideUp(500);
+                $('#unsortedList').slideDown(500);
+            }
         });
 
     </script>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\IP;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class IpController extends Controller
 {
@@ -14,6 +15,7 @@ class IpController extends Controller
         $orderBy = 'desc';
         $sortBy = 'IP';
         $Gloc = null;
+        $router = null;
         if ($request->has('q')) $q = $request->query('q');
         if ($request->has('orderBy')) {
             $orderBy = $request->query('orderBy');
@@ -24,6 +26,11 @@ class IpController extends Controller
             $Gloc = $request->query('Gloc');
             if ($Gloc == 'on') $Gloc = 1;
             else $Gloc = 0;
+        }
+        if ($request->has('router')) {
+            $router = $request->query('router');
+            if ($router == 'on') $router = 1;
+            else $router = 0;
         }
 
         if ($q != null && ip2long($q)){
@@ -63,8 +70,15 @@ class IpController extends Controller
             $ip = IP::select("*")
                 ->orderBy($sortBy, $orderBy)
                 ->get();
-        } else if (!$Gloc) {
+        }
+        else {
             $ip = IP::select("*")
+                ->orderBy($sortBy, $orderBy)
+                ->get();
+        }
+
+        if (!$Gloc) {
+            $gett = IP::select("*")
                 ->orderBy($sortBy, $orderBy)
                 ->get();
             $masks = DB::table('ip')->pluck('IP');
@@ -74,7 +88,7 @@ class IpController extends Controller
             }
             $masks = $masks->unique();
             $Gloc = $masks;
-            $Gloc = $ip->reject(true);
+            $Gloc = $gett->reject(true);
             foreach ($masks as $m) {
                 $ips = DB::table('ip')->select('IP', 'location', 'address')
                     ->where('IP', 'LIKE', "%{$m}%")
@@ -82,15 +96,32 @@ class IpController extends Controller
                     ->get();
                 $Gloc->push($ips);
             }
-            //dd($Gloc->first()->first()->{"IP"});
         }
-        else {
-            $ip = IP::select("*")
+        if (!$router) {
+            $gett = IP::select("*")
                 ->orderBy($sortBy, $orderBy)
                 ->get();
+            $masks = DB::table('ip')->pluck('IP');
+            $masks->toArray();
+            for($i = 0; $i < count($masks); $i++) {
+                $curr = long2ip($masks[$i]);
+                $curr = Str::limit($curr, 9, ".1");
+                $masks[$i] = ip2long($curr);
+            }
+            $masks = $masks->unique();
+            $router = $masks;
+            $router = $gett->reject(true);
+            foreach ($masks as $m) {
+                $ips = DB::table('ip')->select('IP', 'location', 'address')
+                    ->where('IP', 'LIKE', "$m")
+                    ->orderBy('IP', 'asc')
+                    ->get();
+                if (!$ips->isEmpty())
+                    $router->push($ips);
+            }
         }
 
-        return view('searcher', compact('ip', 'q', 'orderBy', 'Gloc'));
+        return view('searcher', compact('ip', 'q', 'orderBy', 'Gloc', 'router'));
     }
 
 }
