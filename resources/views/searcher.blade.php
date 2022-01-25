@@ -162,19 +162,19 @@
                         <div class="card shadow-lg rounded p-3 my-5 rounded-3 shadow-lg p-3 pb-0 rounded">
                             <h1 style="color: green"><strong>
                                     Class
-                                    @if($grng == $Grang[0])
+                                    @if($loop->index == 0)
                                         A:
                                         <br><p><span style="color:orange; font-size: xx-large">10.0.0.1 - 126.255.255.254</span></p>
-                                    @elseif ($grng == $Grang[1])
+                                    @elseif ($loop->index == 1)
                                         B:
                                         <br><p><span style="color:orange; font-size: xx-large">128.0.0.1 - 191.255.255.254</span></p>
-                                    @elseif ($grng == $Grang[2])
+                                    @elseif ($loop->index == 2)
                                         C:
                                         <br><p><span style="color:orange; font-size: xx-large">192.0.1.1 - 223.255.254.254</span></p>
-                                    @elseif ($grng == $Grang[3])
+                                    @elseif ($loop->index == 3)
                                         D:
                                         <br><p><span style="color:orange; font-size: xx-large">224.0.0.0 - 239.255.255.255</span></p>
-                                    @elseif ($grng == $Grang[4])
+                                    @elseif ($loop->index == 4)
                                         E:
                                         <br><p><span style="color:orange; font-size: xx-large">240.0.0.0 - 254.255.255.254</span></p>
                                     @endif
