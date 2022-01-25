@@ -16,6 +16,7 @@ class IpController extends Controller
         $sortBy = 'IP';
         $Gloc = null;
         $router = null;
+        $Grang = null;
         if ($request->has('q')) $q = $request->query('q');
         if ($request->has('orderBy')) {
             $orderBy = $request->query('orderBy');
@@ -32,6 +33,12 @@ class IpController extends Controller
             if ($router == 'on') $router = 1;
             else $router = 0;
         }
+        if ($request->has('Grang')) {
+            $Grang = $request->query('Grang');
+            if ($Grang == 'on') $Grang = 1;
+            else $Grang = 0;
+        }
+
 
         if ($q != null && ip2long($q)){
             $q = ip2long($q);
@@ -58,7 +65,7 @@ class IpController extends Controller
                 ->get();
         } else if ($q != null && ip2long($q.".0.0.0")) {
             $q = ip2long($q.".0.0.0");
-            $grp = (int)($q / 10000000);
+            $grp = (int)($q / 100000000);
             $ip = IP::select("*")
                 ->where('IP', 'LIKE', "%{$q}%")
                 ->orWhere('IP', 'LIKE', "%{$grp}%")
@@ -97,6 +104,7 @@ class IpController extends Controller
                 $Gloc->push($ips);
             }
         }
+
         if (!$router) {
             $gett = IP::select("*")
                 ->orderBy($sortBy, $orderBy)
@@ -121,7 +129,69 @@ class IpController extends Controller
             }
         }
 
-        return view('searcher', compact('ip', 'q', 'orderBy', 'Gloc', 'router'));
+        if (!$Grang) {
+            $gett = IP::select("*")
+                ->orderBy($sortBy, $orderBy)
+                ->get();
+            $Grang = $gett->reject(true);
+
+            //Class A
+            $low = ip2long('10.0.0.0');
+            $high = ip2long('126.255.255.255');
+
+            $ips = DB::table('ip')->select('IP', 'location', 'address')
+                ->where('IP', '>', "$low")
+                ->where('IP', '<', "$high")
+                ->orderBy('IP', 'asc')
+                ->get();
+            $Grang->push($ips);
+
+            //Class B
+            $low = ip2long('128.1.0.0');
+            $high = ip2long('191.255.255.255');
+
+            $ips = DB::table('ip')->select('IP', 'location', 'address')
+                ->where('IP', '>', "$low")
+                ->where('IP', '<', "$high")
+                ->orderBy('IP', 'asc')
+                ->get();
+            $Grang->push($ips);
+
+            //Class C
+            $low = ip2long('192.0.1.0');
+            $high = ip2long('223.255.254.255');
+
+            $ips = DB::table('ip')->select('IP', 'location', 'address')
+                ->where('IP', '>', "$low")
+                ->where('IP', '<', "$high")
+                ->orderBy('IP', 'asc')
+                ->get();
+            $Grang->push($ips);
+
+            //Class D
+            $low = ip2long('224.0.0.0');
+            $high = ip2long('239.255.255.255');
+
+            $ips = DB::table('ip')->select('IP', 'location', 'address')
+                ->where('IP', '>', "$low")
+                ->where('IP', '<', "$high")
+                ->orderBy('IP', 'asc')
+                ->get();
+            $Grang->push($ips);
+
+            //Class E
+            $low = ip2long('240.0.0.0');
+            $high = ip2long('254.255.255.255');
+
+            $ips = DB::table('ip')->select('IP', 'location', 'address')
+                ->where('IP', '>', "$low")
+                ->where('IP', '<', "$high")
+                ->orderBy('IP', 'asc')
+                ->get();
+            $Grang->push($ips);
+        }
+
+        return view('searcher', compact('ip', 'q', 'orderBy', 'Gloc', 'router', 'Grang'));
     }
 
 }
